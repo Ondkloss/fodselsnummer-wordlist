@@ -6,7 +6,7 @@ def create_fodselsnummer_wordlist(days, months, years):
     for day in days:
         for month in months:
             for year in years:
-                for individual in range(0, 999):
+                for individual in range(0, 1000):
                     fodselsnummer = create_fodselsnummer(day, month, year, individual)
 
                     if fodselsnummer is not None:
@@ -26,15 +26,15 @@ def create_fodselsnummer(day, month, year, individual):
     if individual < 0 or individual > 999:
         return None
 
-    d1 = get_xth_digit(day, 2)
-    d2 = get_xth_digit(day, 1)
-    m1 = get_xth_digit(month, 2)
-    m2 = get_xth_digit(month, 1)
-    y1 = get_xth_digit(year, 2)
-    y2 = get_xth_digit(year, 1)
-    i1 = get_xth_digit(individual, 3)
-    i2 = get_xth_digit(individual, 2)
-    i3 = get_xth_digit(individual, 1)
+    d1 = get_xth_digit(day, 1)
+    d2 = get_xth_digit(day, 0)
+    m1 = get_xth_digit(month, 1)
+    m2 = get_xth_digit(month, 0)
+    y1 = get_xth_digit(year, 1)
+    y2 = get_xth_digit(year, 0)
+    i1 = get_xth_digit(individual, 2)
+    i2 = get_xth_digit(individual, 1)
+    i3 = get_xth_digit(individual, 0)
 
     control_digit_1 = calculate_control_digit_1(d1, d2, m1, m2, y1, y2, i1, i2, i3)
     if control_digit_1 == 10:
@@ -65,11 +65,9 @@ def calculate_control_digit_2(d1, d2, m1, m2, y1, y2, i1, i2, i3, c1):
     return result
 
 
+# https://stackoverflow.com/a/39644726
 def get_xth_digit(number, digit):
-    if len(str(number)) < digit:
-        return 0
-
-    return int(str(number)[len(str(number)) - digit])
+    return number // 10 ** digit % 10
 
 
 if __name__ == "__main__":
