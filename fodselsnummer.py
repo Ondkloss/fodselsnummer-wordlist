@@ -1,4 +1,6 @@
 # Based on https://no.wikipedia.org/wiki/F%C3%B8dselsnummer
+from argparse import ArgumentParser, ArgumentTypeError
+import re
 
 
 def create_fodselsnummer_wordlist(days, months, years):
@@ -50,7 +52,7 @@ def create_fodselsnummer(day, month, year, individual):
 
 
 def calculate_control_digit_1(d1, d2, m1, m2, y1, y2, i1, i2, i3):
-    result = 11 - (((3 * d1) + (7 * d2) + (6 * m1) + (1 * m2) + (8 * y1) + (9 * y2) + (4 * i1) + (5 * i2) + (2 * i3)) % 11)
+    result = 11 - ((3 * d1 + 7 * d2 + 6 * m1 + 1 * m2 + 8 * y1 + 9 * y2 + 4 * i1 + 5 * i2 + 2 * i3) % 11)
 
     if result == 11:
         return 0
@@ -58,7 +60,7 @@ def calculate_control_digit_1(d1, d2, m1, m2, y1, y2, i1, i2, i3):
 
 
 def calculate_control_digit_2(d1, d2, m1, m2, y1, y2, i1, i2, i3, c1):
-    result = 11 - (((5 * d1) + (4 * d2) + (3 * m1) + (2 * m2) + (7 * y1) + (6 * y2) + (5 * i1) + (4 * i2) + (3 * i3) + (2 * c1)) % 11)
+    result = 11 - ((5 * d1 + 4 * d2 + 3 * m1 + 2 * m2 + 7 * y1 + 6 * y2 + 5 * i1 + 4 * i2 + 3 * i3 + 2 * c1) % 11)
 
     if result == 11:
         return 0
@@ -70,5 +72,45 @@ def get_xth_digit(number, digit):
     return number // 10 ** digit % 10
 
 
+# https://stackoverflow.com/a/6512463
+def limited_range(value, mn, mx):
+    groups = value.split('-')
+
+    if len(groups) < 1 or len(groups) > 2:
+        raise ArgumentTypeError("Invalid range format. Expected format similar to '2' or '2-4'")
+
+    start = int(groups[0])
+    end = int(groups[1]) if len(groups) > 1 else start
+
+    if start < mn or end < mn:
+        raise ArgumentTypeError("The range goes below the minimum of %i" % mn)
+    if start > mx or end > mx:
+        raise ArgumentTypeError("The range goes above the maximum of %i" % mx)
+
+    return range(start, end+1)
+
+
+def day_range(value):
+    return limited_range(value, 1, 31)
+
+
+def month_range(value):
+    return limited_range(value, 1, 12)
+
+
+def year_range(value):
+    return limited_range(value, 0, 99)
+
+
+def argparser():
+    parser = ArgumentParser(description='Create fodselsnummer.txt containing all valid fødselsnummer for the given criteria')
+    parser.add_argument('-d', '--days', type=day_range, metavar="[1-31]", help='A day range', default=range(1, 32))
+    parser.add_argument('-m', '--months', type=month_range, metavar="[1-12]", help='A month range', default=range(1, 13))
+    parser.add_argument('-y', '--years', type=year_range, metavar="[0-99]", help='A year range', default=range(0, 100))
+
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    create_fodselsnummer_wordlist(range(1, 32), range(1, 13), range(0, 100))
+    args = argparser()
+    create_fodselsnummer_wordlist(args.days, args.months, args.years)
